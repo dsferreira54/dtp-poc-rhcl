@@ -201,3 +201,18 @@ spec:
     syncOptions:
       - ApplyOutOfSyncOnly=true
 EOF
+
+ARGOCD_ADMIN_PASSWORD="$(oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}' 2>/dev/null | base64 -d)"
+
+echo ""
+echo "Argo CD admin credentials:"
+echo "  Username: admin"
+if [ -n "$ARGOCD_ADMIN_PASSWORD" ]; then
+  echo "  Password: ${ARGOCD_ADMIN_PASSWORD}"
+else
+  echo "  Error: unable to retrieve Argo CD admin password from secret openshift-gitops-cluster."
+fi
+ARGOCD_URL="$(oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}' 2>/dev/null)"
+if [ -n "$ARGOCD_URL" ]; then
+  echo "  URL: https://${ARGOCD_URL}"
+fi
