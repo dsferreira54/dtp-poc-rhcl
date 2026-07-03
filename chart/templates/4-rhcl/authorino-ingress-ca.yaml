@@ -1,0 +1,98 @@
+{{- if .Values.authorino.trustIngressCA.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: authorino-ingress-ca-sync
+  namespace: kuadrant-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: authorino-ingress-ca-sync
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+    resourceNames: ["trusted-ca-bundle"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: authorino-ingress-ca-sync
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: authorino-ingress-ca-sync
+subjects:
+  - kind: ServiceAccount
+    name: authorino-ingress-ca-sync
+    namespace: kuadrant-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: authorino-ingress-ca-sync
+  namespace: kuadrant-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: authorino-ingress-ca-sync
+  namespace: kuadrant-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: authorino-ingress-ca-sync
+subjects:
+  - kind: ServiceAccount
+    name: authorino-ingress-ca-sync
+    namespace: kuadrant-system
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: authorino-ingress-ca-sync
+  namespace: kuadrant-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      serviceAccountName: authorino-ingress-ca-sync
+      restartPolicy: OnFailure
+      containers:
+        - name: sync
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              TRUSTED_BUNDLE="$(oc get configmap trusted-ca-bundle -n openshift-config-managed -o jsonpath='{.data.ca-bundle\.crt}')"
+              INGRESS_CERT="$(oc get secret "{{ .Values.authorino.trustIngressCA.ingressSecretName }}" -n "{{ .Values.authorino.trustIngressCA.ingressSecretNamespace }}" -o jsonpath='{.data.tls\.crt}' | base64 -d)"
+              TMP="$(mktemp -d)"
+              printf '%s\n%s\n' "${TRUSTED_BUNDLE}" "${INGRESS_CERT}" > "${TMP}/tls-ca-bundle.pem"
+              oc create configmap openshift-ingress-ca-bundle -n kuadrant-system \
+                --from-file=tls-ca-bundle.pem="${TMP}/tls-ca-bundle.pem" \
+                --dry-run=client -o yaml | oc apply -f -
+{{- end }}

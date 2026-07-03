@@ -1,0 +1,35 @@
+{{- if .Values.authorino.trustIngressCA.enabled }}
+---
+apiVersion: operator.authorino.kuadrant.io/v1beta1
+kind: Authorino
+metadata:
+  name: authorino
+  namespace: kuadrant-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "16"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  clusterWide: true
+  supersedingHostSubsets: true
+  listener:
+    ports: {}
+    tls:
+      enabled: false
+  oidcServer:
+    tls:
+      enabled: false
+  healthz: {}
+  metrics: {}
+  tracing:
+    endpoint: ""
+  volumes:
+    defaultMode: 420
+    items:
+      - name: openshift-ingress-ca-bundle
+        mountPath: /etc/pki/ca-trust/extracted/pem
+        configMaps:
+          - openshift-ingress-ca-bundle
+        items:
+          - key: tls-ca-bundle.pem
+            path: tls-ca-bundle.pem
+{{- end }}
