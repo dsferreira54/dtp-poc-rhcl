@@ -16,7 +16,7 @@ metallb:
       - 192.168.1.240-192.168.1.250
 ingress:
   selfSigned:
-    enabled: true
+    enabled: false
     jobNamespace: ingress-selfsigned
     secretNamespace: openshift-ingress
     secretName: cert-manager-ingress-cert
@@ -24,8 +24,16 @@ ingress:
     routerNamespace: openshift-ingress
     routerDeployment: router-default
     validityDays: 90
+htpasswd:
+  enabled: false
+  jobNamespace: ingress-selfsigned
+  username: demo
+  passwordHash: "$2y$05$LafNcbjVdORYJGDqvQ99x.KJKiI9jz7sMEuz9lpAHMCK868d3cnaK"
+  secretName: htpasswd-demo
+  identityProviderName: htpasswd-demo
+  clusterAdminBindingName: htpasswd-demo-cluster-admin
 authorino:
   trustIngressCA:
-    enabled: true
+    enabled: false
     ingressSecretNamespace: openshift-ingress
     ingressSecretName: cert-manager-ingress-cert
