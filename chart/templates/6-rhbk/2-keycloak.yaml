@@ -36,7 +36,7 @@ spec:
       name: keycloak-db-secret
       key: password
   hostname:
-    hostname: https://keycloak.{{ .Values.ingressDomain }}
+    hostname: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}
   http:
     httpEnabled: true
   proxy:

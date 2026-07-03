@@ -80,10 +80,10 @@ spec:
     kind: HTTPRoute
     name: hello-world-app
   provider:
-    issuerURL: https://keycloak.{{ .Values.ingressDomain }}/realms/rhcl
+    issuerURL: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl
     clientID: hello-world-app
-    authorizationEndpoint: https://keycloak.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth
-    tokenEndpoint: https://keycloak.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
+    authorizationEndpoint: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth
+    tokenEndpoint: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
     redirectURI: http://hello-world-app.{{ .Values.gwapiDomain }}/auth/callback
   auth:
     tokenSource:
