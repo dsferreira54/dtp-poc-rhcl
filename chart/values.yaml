@@ -1,0 +1,16 @@
+gwapiDomain: gwapi.ocp.acme.com
+ingressDomain: apps.ocp.acme.com
+rhclVersion: 1.4.1
+namespaces:
+  exampleApps: example-apps
+  rhbk: rhbk
+monitoring:
+  userWorkload:
+    enabled: true
+  rhclMetrics:
+    enabled: true
+metallb:
+  enabled: true
+  ipAddressPool:
+    addresses:
+      - 192.168.1.240-192.168.1.250

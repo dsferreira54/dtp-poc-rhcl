@@ -1,0 +1,104 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-db-secret
+  namespace: {{ .Values.namespaces.rhbk }}
+  labels:
+    app: rhbk-pgsql
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"
+type: Opaque
+stringData:
+  username: keycloak
+  password: keycloak-demo-pass
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rhbk-pgsql-data
+  namespace: {{ .Values.namespaces.rhbk }}
+  labels:
+    app: rhbk-pgsql
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rhbk-pgsql
+  namespace: {{ .Values.namespaces.rhbk }}
+  labels:
+    app: rhbk-pgsql
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"
+spec:
+  serviceName: rhbk-pgsql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rhbk-pgsql
+  template:
+    metadata:
+      labels:
+        app: rhbk-pgsql
+    spec:
+      containers:
+        - name: rhbk-pgsql
+          image: docker.io/postgres:15
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: keycloak
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "keycloak", "-d", "keycloak"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: rhbk-pgsql-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rhbk-pgsql
+  namespace: {{ .Values.namespaces.rhbk }}
+  labels:
+    app: rhbk-pgsql
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"
+spec:
+  selector:
+    app: rhbk-pgsql
+  ports:
+    - port: 5432
+      targetPort: 5432

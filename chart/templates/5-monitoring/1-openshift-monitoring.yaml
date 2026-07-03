@@ -1,0 +1,54 @@
+{{- if .Values.monitoring.userWorkload.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+data:
+  config.yaml: |
+    enableUserWorkload: true
+{{- end }}
+{{- if .Values.monitoring.rhclMetrics.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhcl-metrics
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Kuadrant/kuadrant-operator
+    targetRevision: v{{ .Values.rhclVersion }}
+    path: config/install/configure/observability
+    kustomize:
+      patches:
+        - target:
+            group: operators.coreos.com
+            version: v1alpha1
+            kind: Subscription
+            name: grafana-operator
+            namespace: openshift-operators
+          patch: |
+            $patch: delete
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              name: grafana-operator
+              namespace: openshift-operators
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gateway-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+{{- end }}
