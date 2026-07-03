@@ -250,6 +250,19 @@ spec:
           key: token
           name: grafana-instance-sa-token
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-developer-dashboard
+  namespace: grafana
+  labels:
+    app.kubernetes.io/managed-by: grafana-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+data:
+  dashboard.json: |
+{{ .Files.Get "files/dashboards/app-developer-dashboard.json" | indent 4 }}
+---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
@@ -262,11 +275,25 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+  configMapRef:
+    name: app-developer-dashboard
+    key: dashboard.json
   datasources:
     - inputName: DS_PROMETHEUS
       datasourceName: Prometheus
-  grafanaCom:
-    id: 21538
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: business-user-dashboard
+  namespace: grafana
+  labels:
+    app.kubernetes.io/managed-by: grafana-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+data:
+  dashboard.json: |
+{{ .Files.Get "files/dashboards/business-user-dashboard.json" | indent 4 }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -280,11 +307,25 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+  configMapRef:
+    name: business-user-dashboard
+    key: dashboard.json
   datasources:
     - inputName: DS_PROMETHEUS
       datasourceName: Prometheus
-  grafanaCom:
-    id: 20981
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-engineer-dashboard
+  namespace: grafana
+  labels:
+    app.kubernetes.io/managed-by: grafana-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+data:
+  dashboard.json: |
+{{ .Files.Get "files/dashboards/platform-engineer-dashboard.json" | indent 4 }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -298,11 +339,25 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+  configMapRef:
+    name: platform-engineer-dashboard
+    key: dashboard.json
   datasources:
     - inputName: DS_PROMETHEUS
       datasourceName: Prometheus
-  grafanaCom:
-    id: 20982
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns-operator-dashboard
+  namespace: grafana
+  labels:
+    app.kubernetes.io/managed-by: grafana-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+data:
+  dashboard.json: |
+{{ .Files.Get "files/dashboards/dns-operator-dashboard.json" | indent 4 }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -316,8 +371,9 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+  configMapRef:
+    name: dns-operator-dashboard
+    key: dashboard.json
   datasources:
     - inputName: DS_KUADRANT-THANOS-HUB
       datasourceName: Prometheus
-  grafanaCom:
-    id: 22695
