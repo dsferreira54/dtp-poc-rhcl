@@ -49,6 +49,9 @@ rules:
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["get", "create", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -95,4 +98,5 @@ spec:
               oc create configmap openshift-ingress-ca-bundle -n kuadrant-system \
                 --from-file=tls-ca-bundle.pem="${TMP}/tls-ca-bundle.pem" \
                 --dry-run=client -o yaml | oc apply -f -
+              oc rollout restart deployment/authorino -n kuadrant-system
 {{- end }}

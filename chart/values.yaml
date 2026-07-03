@@ -14,6 +14,16 @@ metallb:
   ipAddressPool:
     addresses:
       - 192.168.1.240-192.168.1.250
+ingress:
+  selfSigned:
+    enabled: true
+    jobNamespace: ingress-selfsigned
+    secretNamespace: openshift-ingress
+    secretName: cert-manager-ingress-cert
+    certificateName: cert-manager-ingress-cert
+    routerNamespace: openshift-ingress
+    routerDeployment: router-default
+    validityDays: 90
 authorino:
   trustIngressCA:
     enabled: true

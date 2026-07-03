@@ -1,0 +1,145 @@
+{{- if .Values.ingress.selfSigned.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.ingress.selfSigned.jobNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ingress-selfsigned
+  namespace: {{ .Values.ingress.selfSigned.jobNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ingress-selfsigned
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+rules:
+  - apiGroups: ["config.openshift.io"]
+    resources: ["ingresses"]
+    verbs: ["get"]
+  - apiGroups: ["cert-manager.io"]
+    resources: ["certificates"]
+    verbs: ["get", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ingress-selfsigned
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress-selfsigned
+subjects:
+  - kind: ServiceAccount
+    name: ingress-selfsigned
+    namespace: {{ .Values.ingress.selfSigned.jobNamespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ingress-selfsigned
+  namespace: {{ .Values.ingress.selfSigned.secretNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ingress-selfsigned
+  namespace: {{ .Values.ingress.selfSigned.secretNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ingress-selfsigned
+subjects:
+  - kind: ServiceAccount
+    name: ingress-selfsigned
+    namespace: {{ .Values.ingress.selfSigned.jobNamespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ingress-selfsigned
+  namespace: {{ .Values.ingress.selfSigned.jobNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      serviceAccountName: ingress-selfsigned
+      restartPolicy: OnFailure
+      containers:
+        - name: apply
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CERT_NS="{{ .Values.ingress.selfSigned.secretNamespace }}"
+              CERT_NAME="{{ .Values.ingress.selfSigned.certificateName }}"
+              SECRET_NAME="{{ .Values.ingress.selfSigned.secretName }}"
+              ROUTER_NS="{{ .Values.ingress.selfSigned.routerNamespace }}"
+              ROUTER_NAME="{{ .Values.ingress.selfSigned.routerDeployment }}"
+              VALIDITY_DAYS="{{ .Values.ingress.selfSigned.validityDays }}"
+
+              INGRESS_DOMAIN="$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')"
+              if [ -z "${INGRESS_DOMAIN}" ]; then
+                echo "Error: unable to retrieve the OpenShift ingress domain."
+                exit 1
+              fi
+
+              if oc get certificate "${CERT_NAME}" -n "${CERT_NS}" >/dev/null 2>&1; then
+                echo "Removing cert-manager Certificate ${CERT_NAME} so the job-managed secret is not reconciled."
+                oc delete certificate "${CERT_NAME}" -n "${CERT_NS}"
+              fi
+
+              TMP="$(mktemp -d)"
+              openssl req -x509 -nodes -days "${VALIDITY_DAYS}" -newkey rsa:2048 \
+                -keyout "${TMP}/tls.key" -out "${TMP}/tls.crt" \
+                -subj "/CN=*.${INGRESS_DOMAIN}" \
+                -addext "subjectAltName=DNS:*.${INGRESS_DOMAIN},DNS:${INGRESS_DOMAIN}"
+
+              oc create secret tls "${SECRET_NAME}" -n "${CERT_NS}" \
+                --cert="${TMP}/tls.crt" --key="${TMP}/tls.key" \
+                --dry-run=client -o yaml | oc apply -f -
+
+              oc annotate secret "${SECRET_NAME}" -n "${CERT_NS}" \
+                dtp-poc-rhcl/self-signed-by-job=true --overwrite
+
+              echo "Restarting ingress router to load the self-signed certificate."
+              oc rollout restart "deployment/${ROUTER_NAME}" -n "${ROUTER_NS}"
+              for i in $(seq 1 60); do
+                READY="$(oc get deployment "${ROUTER_NAME}" -n "${ROUTER_NS}" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)"
+                DESIRED="$(oc get deployment "${ROUTER_NAME}" -n "${ROUTER_NS}" -o jsonpath='{.spec.replicas}' 2>/dev/null || true)"
+                if [ -n "${READY}" ] && [ "${READY}" = "${DESIRED}" ] && [ "${READY}" != "0" ]; then
+                  echo "Router deployment is ready."
+                  break
+                fi
+                sleep 3
+              done
+
+              echo | openssl s_client -connect "console-openshift-console.${INGRESS_DOMAIN}:443" -servername "console-openshift-console.${INGRESS_DOMAIN}" 2>/dev/null \
+                | openssl x509 -noout -subject -issuer
+{{- end }}
