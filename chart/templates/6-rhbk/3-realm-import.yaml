@@ -5,7 +5,7 @@ metadata:
   name: rhcl-realm
   namespace: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: "25"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   keycloakCRName: keycloak

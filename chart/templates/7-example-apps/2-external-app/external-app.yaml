@@ -5,7 +5,7 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "26"
+    argocd.argoproj.io/sync-wave: "30"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   hosts:
@@ -23,7 +23,7 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "26"
+    argocd.argoproj.io/sync-wave: "30"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   host: httpbinn.org
@@ -38,7 +38,7 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "27"
+    argocd.argoproj.io/sync-wave: "31"
 spec:
   parentRefs:
     - name: main-gateway

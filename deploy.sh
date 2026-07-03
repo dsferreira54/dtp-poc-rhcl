@@ -176,12 +176,12 @@ oc apply -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhcl-reference
+  name: dtp-poc-rhcl
   namespace: openshift-gitops
 spec:
   project: default
   source:
-    repoURL: https://github.com/dsferreira54/rhcl-reference
+    repoURL: https://github.com/dsferreira54/dtp-poc-rhcl
     targetRevision: main
     path: chart
     helm:
@@ -194,7 +194,7 @@ spec:
           value: "${METALLB_IP_POOL}"
   destination:
     server: https://kubernetes.default.svc
-    namespace: rhcl-reference
+    namespace: dtp-poc-rhcl
   syncPolicy:
     automated:
       prune: true

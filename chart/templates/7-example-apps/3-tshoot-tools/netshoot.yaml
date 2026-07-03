@@ -5,7 +5,7 @@ metadata:
   name: netshoot
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "33"
+    argocd.argoproj.io/sync-wave: "37"
 spec:
   clusterIP: None
   selector:
@@ -17,7 +17,7 @@ metadata:
   name: netshoot
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "34"
+    argocd.argoproj.io/sync-wave: "38"
 spec:
   serviceName: netshoot
   replicas: 1

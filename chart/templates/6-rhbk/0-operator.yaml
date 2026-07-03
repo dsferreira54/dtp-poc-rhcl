@@ -4,7 +4,7 @@ kind: Namespace
 metadata:
   name: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "37"
+    argocd.argoproj.io/sync-wave: "22"
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -12,7 +12,7 @@ metadata:
   name: rhbk-operatorgroup
   namespace: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "37"
+    argocd.argoproj.io/sync-wave: "22"
 spec:
   targetNamespaces:
     - {{ .Values.namespaces.rhbk }}
@@ -23,7 +23,7 @@ metadata:
   name: rhbk-operator
   namespace: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "37"
+    argocd.argoproj.io/sync-wave: "22"
 spec:
   channel: stable-v26.6
   installPlanApproval: Automatic

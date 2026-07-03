@@ -5,7 +5,7 @@ metadata:
   name: keycloak-bootstrap-admin
   namespace: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "39"
+    argocd.argoproj.io/sync-wave: "24"
 type: Opaque
 stringData:
   username: admin
@@ -17,7 +17,7 @@ metadata:
   name: keycloak
   namespace: {{ .Values.namespaces.rhbk }}
   annotations:
-    argocd.argoproj.io/sync-wave: "39"
+    argocd.argoproj.io/sync-wave: "24"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   instances: 1

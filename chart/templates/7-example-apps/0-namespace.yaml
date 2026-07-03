@@ -6,4 +6,4 @@ metadata:
   labels:
     istio.io/rev: default
   annotations:
-    argocd.argoproj.io/sync-wave: "22"
+    argocd.argoproj.io/sync-wave: "26"

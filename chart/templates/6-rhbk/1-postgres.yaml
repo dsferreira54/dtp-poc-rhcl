@@ -7,7 +7,7 @@ metadata:
   labels:
     app: rhbk-pgsql
   annotations:
-    argocd.argoproj.io/sync-wave: "38"
+    argocd.argoproj.io/sync-wave: "23"
 type: Opaque
 stringData:
   username: keycloak
@@ -21,7 +21,7 @@ metadata:
   labels:
     app: rhbk-pgsql
   annotations:
-    argocd.argoproj.io/sync-wave: "38"
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -37,7 +37,7 @@ metadata:
   labels:
     app: rhbk-pgsql
   annotations:
-    argocd.argoproj.io/sync-wave: "38"
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   serviceName: rhbk-pgsql
   replicas: 1
@@ -95,7 +95,7 @@ metadata:
   labels:
     app: rhbk-pgsql
   annotations:
-    argocd.argoproj.io/sync-wave: "38"
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   selector:
     app: rhbk-pgsql
