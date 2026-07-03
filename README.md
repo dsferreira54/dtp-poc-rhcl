@@ -101,8 +101,6 @@ spec:
           value: "1.4.1"
         - name: metallb.enabled
           value: "false"
-        - name: metallb.ipAddressPool.addresses[0]
-          value: "<FAIXA_DE_IPS_METALLB>"
         - name: monitoring.userWorkload.enabled
           value: "false"
         - name: monitoring.rhclMetrics.enabled
@@ -141,8 +139,10 @@ spec:
           value: "1.4.1"
         - name: metallb.enabled
           value: "false"
-        - name: metallb.ipAddressPool.addresses[0]
-          value: "192.168.1.240-192.168.1.250"
+        - name: monitoring.userWorkload.enabled
+          value: "false"
+        - name: monitoring.rhclMetrics.enabled
+          value: "true"
   destination:
     server: https://kubernetes.default.svc
     namespace: dtp-poc-rhcl
