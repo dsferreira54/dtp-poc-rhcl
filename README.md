@@ -126,7 +126,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/dtp-org/dtp-poc-rhcl
+    repoURL: https://git.dtp.example.com/dtp-org/dtp-poc-rhcl
     targetRevision: main
     path: chart
     helm:
@@ -143,6 +143,10 @@ spec:
           value: "false"
         - name: monitoring.rhclMetrics.enabled
           value: "true"
+        - name: namespaces.exampleApps
+          value: "poc-rhcl-hello-world-app"
+        - name: namespaces.rhbk
+          value: "poc-rhcl-rhbk"
   destination:
     server: https://kubernetes.default.svc
     namespace: dtp-poc-rhcl
