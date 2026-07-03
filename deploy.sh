@@ -194,12 +194,10 @@ spec:
           value: "${METALLB_IP_POOL}"
   destination:
     server: https://kubernetes.default.svc
-    namespace: dtp-poc-rhcl
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
 EOF
