@@ -3,6 +3,7 @@ ingressDomain: apps.ocp.acme.com
 rhclVersion: 1.4.1
 namespaces:
   exampleApps: example-apps
+  externalAppConsumers: external-app-consumers
   rhbk: rhbk
 monitoring:
   userWorkload:
