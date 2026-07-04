@@ -5,7 +5,8 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "32"
+    argocd.argoproj.io/sync-wave: "39"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -29,7 +30,8 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "32"
+    argocd.argoproj.io/sync-wave: "39"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -48,7 +50,8 @@ metadata:
   name: external-app
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "32"
+    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   displayName: External App API
   description: |
@@ -76,7 +79,7 @@ kind: Namespace
 metadata:
   name: {{ .Values.namespaces.externalAppConsumers }}
   annotations:
-    argocd.argoproj.io/sync-wave: "33"
+    argocd.argoproj.io/sync-wave: "41"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -84,7 +87,7 @@ metadata:
   name: api-owner-example-apps
   namespace: {{ .Values.namespaces.exampleApps }}
   annotations:
-    argocd.argoproj.io/sync-wave: "33"
+    argocd.argoproj.io/sync-wave: "42"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -100,7 +103,7 @@ metadata:
   name: api-consumer-external-app-consumers
   namespace: {{ .Values.namespaces.externalAppConsumers }}
   annotations:
-    argocd.argoproj.io/sync-wave: "33"
+    argocd.argoproj.io/sync-wave: "42"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
