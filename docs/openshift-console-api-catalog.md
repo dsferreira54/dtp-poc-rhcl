@@ -38,7 +38,7 @@ Existem três papéis principais:
 3. Consumer solicita acesso (cria APIKey no namespace dele)
 4. Controller cria APIKeyRequest no namespace do owner (recurso sombra — não editar manualmente)
 5. Owner aprova via console ou APIKeyApproval
-6. Controller ativa a key; Consumer chama a API com o header correto
+6. Controller ativa a key; Consumer chama a API com a key na query string correta
 7. AuthPolicy valida a key no gateway
 ```
 
@@ -158,13 +158,13 @@ oc apply -f httproute.yaml
 
 ### Passo 2 — Proteger a API com AuthPolicy (API key)
 
-Crie um `AuthPolicy` apontando para o `HTTPRoute`. Ele define **como** a key deve ser enviada e **quais secrets** o gateway aceita.
+Crie um `AuthPolicy` apontando para o `HTTPRoute`. Ele define **onde** a key deve ser enviada (query string, header, etc.) e **quais secrets** o gateway aceita.
 
 Pontos-chave:
 
 - O seletor de labels (`matchLabels.app`) deve corresponder ao **nome do `APIProduct`** (no PoC: `app: external-app`)
 - Use `allNamespaces: true` para que keys aprovadas pelo controller (criadas em `kuadrant-system`) sejam reconhecidas
-- No PoC, o header exigido é: `Authorization: APIKEY <sua-key>`
+- No PoC, a key é enviada como query string: `?apikey=<sua-key>`
 
 **Exemplo:**
 
@@ -188,8 +188,8 @@ spec:
             matchLabels:
               app: external-app   # deve bater com o nome do APIProduct
         credentials:
-          authorizationHeader:
-            prefix: APIKEY
+          queryString:
+            name: apikey
 ```
 
 ```bash
@@ -437,8 +437,7 @@ curl -H "Host: external-app.gwapi.ocp.acme.com" \
 
 # Com key aprovada → 200
 curl -H "Host: external-app.gwapi.ocp.acme.com" \
-  -H "Authorization: APIKEY <sua-key-aprovada>" \
-  http://<gateway>/get
+  "http://<gateway>/get?apikey=<sua-key-aprovada>"
 ```
 
 No PoC local, use `./access.sh` para configurar `/etc/hosts` e port-forward do gateway.
@@ -473,7 +472,7 @@ O namespace `external-app-consumers` **não roda a aplicação** — ele só rep
 3. Solicite acesso à API desejada, informando tier e use case
 4. Aguarde aprovação (se manual)
 5. Recupere a key na mesma tela (**Show API Key**)
-6. Use no header `Authorization: APIKEY <key>` nas chamadas à API
+6. Use a query string `?apikey=<key>` nas chamadas à API
 
 ---
 
@@ -484,7 +483,7 @@ O namespace `external-app-consumers` **não roda a aplicação** — ele só rep
 - [ ] Consumer consegue solicitar key (`APIKey` em Pending)
 - [ ] Owner vê o pedido em API Key Approvals
 - [ ] Após aprovação, chamada com key retorna **200**
-- [ ] Header de autenticação corresponde ao configurado no `AuthPolicy` (no PoC: `APIKEY`)
+- [ ] Query string de autenticação corresponde ao configurado no `AuthPolicy` (no PoC: `?apikey=`)
 
 ---
 

@@ -20,8 +20,8 @@ spec:
             matchLabels:
               app: external-app
         credentials:
-          authorizationHeader:
-            prefix: APIKEY
+          queryString:
+            name: apikey
 ---
 apiVersion: extensions.kuadrant.io/v1alpha1
 kind: PlanPolicy
