@@ -37,4 +37,4 @@ authorino:
   trustIngressCA:
     enabled: false
     ingressSecretNamespace: openshift-ingress
-    ingressSecretName: cert-manager-ingress-cert
+    ingressSecretName: router-certs-default
