@@ -1,3 +1,4 @@
+{{- $iamApp := dict "root" . "app" "helloWorldApp" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -109,14 +110,17 @@ spec:
             cookie:
               name: jwt
           jwt:
-            issuerUrl: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl
+            issuerUrl: {{ include "rhcl.externalIam.issuerURL" $iamApp | quote }}
+{{- if include "rhcl.externalIam.jwksURL" $iamApp }}
+            jwksUrl: {{ include "rhcl.externalIam.jwksURL" $iamApp | quote }}
+{{- end }}
           priority: 0
       response:
         unauthenticated:
           code: 302
           headers:
             location:
-              value: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth?client_id={{ .Values.rhbk.helloWorldApp.clientId }}&redirect_uri=http%3A%2F%2Fhello-world-app.{{ .Values.gwapiDomain }}%2Fauth%2Fcallback&response_type=code&scope=openid
+              value: {{ include "rhcl.externalIam.authRedirectURL" $iamApp | quote }}
             set-cookie:
               expression: |
                 "target=" + request.path + "; domain=hello-world-app.{{ .Values.gwapiDomain }}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600"
@@ -143,7 +147,7 @@ spec:
           when:
           - predicate: request.query.split("&").map(entry, entry.split("=")).filter(pair, pair[0] == "code").map(pair, pair[1]).size() > 0
           http:
-            url: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
+            url: {{ include "rhcl.externalIam.tokenEndpoint" $iamApp | quote }}
             method: POST
             contentType: application/x-www-form-urlencoded
             sharedSecretRef:
@@ -164,7 +168,7 @@ spec:
               cookies := { name: value | raw_cookies := input.request.headers.cookie; cookie_parts := split(raw_cookies, ";"); part := cookie_parts[_]; kv := split(trim(part, " "), "="); count(kv) == 2; name := trim(kv[0], " "); value := trim(kv[1], " ")}
               location := concat("", ["http://hello-world-app.{{ .Values.gwapiDomain }}", cookies.target]) { input.auth.metadata.token.id_token; cookies.target }
               location := "http://hello-world-app.{{ .Values.gwapiDomain }}" { input.auth.metadata.token.id_token; not cookies.target }
-              location := "https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth?client_id={{ .Values.rhbk.helloWorldApp.clientId }}&redirect_uri=http%3A%2F%2Fhello-world-app.{{ .Values.gwapiDomain }}%2Fauth%2Fcallback&response_type=code&scope=openid" { not input.auth.metadata.token.id_token }
+              location := "{{ include "rhcl.externalIam.authRedirectURL" $iamApp }}" { not input.auth.metadata.token.id_token }
               allow = true
         deny:
           priority: 2

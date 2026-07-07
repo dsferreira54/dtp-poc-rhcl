@@ -9,6 +9,14 @@ rhbk:
   helloWorldApp:
     clientId: hello-world-app
     clientSecret: hello-world-app-secret
+    # IAM externo (ex.: GERID) — enabled: false = Keycloak embarcado; true = usa parameters abaixo
+    externalIam:
+      enabled: false
+      parameters:
+        jwksURL: "https://hiam.gerid.acme.com/cas/oidc/jwks"
+        issuerURL: "https://hiam.gerid.acme.com/cas/oidc"
+        authorizationEndpoint: "https://hiam.gerid.acme.com/cas/oidc/authorize"
+        tokenEndpoint: "https://hiam.gerid.acme.com/cas/oidc/accessToken"
 monitoring:
   userWorkload:
     enabled: true
