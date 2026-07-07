@@ -109,9 +109,10 @@ spec:
             cookie:
               name: jwt
           jwt:
-            issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}
             {{- if .Values.externalIAM.enabled }}
             jwksUrl: {{ include "rhcl.oidc.jwksUrl" . | quote }}
+            {{- else }}
+            issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}
             {{- end }}
           priority: 0
       response:

@@ -17,7 +17,8 @@ OIDC issuer URL — externalIAM.parameters.issuer when enabled, else Keycloak re
 {{- end -}}
 
 {{/*
-JWKS URL — externalIAM.parameters.jwks when enabled, else Keycloak certs endpoint.
+JWKS URL — externalIAM.parameters.jwks when enabled.
+AuthPolicy jwt block accepts jwksUrl OR issuerUrl, not both.
 */}}
 {{- define "rhcl.oidc.jwksUrl" -}}
 {{- if .Values.externalIAM.enabled -}}
