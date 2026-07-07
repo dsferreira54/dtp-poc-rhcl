@@ -1,67 +1,58 @@
 {{/*
-URLs OIDC para IAM externo — .Values.rhbk.<app>.externalIam
-
-enabled: false → endpoints do Keycloak embarcado (realm rhcl); parameters ignorados.
-enabled: true  → authorizationEndpoint, tokenEndpoint e issuerURL vão para os AuthPolicies.
-  No bloco jwt o CRD aceita só issuerUrl OU jwksUrl: usa issuerURL dos parameters;
-  jwksURL só entra se issuerURL estiver vazio (IAM sem URL de issuer).
-
-Usage: include "rhcl.externalIam.issuerURL" (dict "root" . "app" "helloWorldApp")
+Keycloak realm base URL (OIDC issuer default for this PoC).
 */}}
-{{- define "rhcl.externalIam.issuerURL" -}}
-{{- $root := .root -}}
-{{- $app := .app -}}
-{{- $appCfg := default dict (index $root.Values.rhbk $app) -}}
-{{- $iam := default dict $appCfg.externalIam -}}
-{{- $params := default dict $iam.parameters -}}
-{{- if and $iam.enabled $params.issuerURL -}}
-{{- $params.issuerURL -}}
+{{- define "rhcl.keycloak.oidcBaseUrl" -}}
+https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl
+{{- end -}}
+
+{{/*
+OIDC issuer URL — externalIAM.parameters.issuer when enabled, else Keycloak realm.
+*/}}
+{{- define "rhcl.oidc.issuerUrl" -}}
+{{- if .Values.externalIAM.enabled -}}
+{{ .Values.externalIAM.parameters.issuer }}
 {{- else -}}
-https://{{ $root.Values.namespaces.rhbk }}.{{ $root.Values.ingressDomain }}/realms/rhcl
+{{- include "rhcl.keycloak.oidcBaseUrl" . -}}
 {{- end -}}
 {{- end -}}
 
-{{- define "rhcl.externalIam.authorizationEndpoint" -}}
-{{- $root := .root -}}
-{{- $app := .app -}}
-{{- $appCfg := default dict (index $root.Values.rhbk $app) -}}
-{{- $iam := default dict $appCfg.externalIam -}}
-{{- $params := default dict $iam.parameters -}}
-{{- if and $iam.enabled $params.authorizationEndpoint -}}
-{{- $params.authorizationEndpoint -}}
+{{/*
+JWKS URL — externalIAM.parameters.jwks when enabled, else Keycloak certs endpoint.
+*/}}
+{{- define "rhcl.oidc.jwksUrl" -}}
+{{- if .Values.externalIAM.enabled -}}
+{{ .Values.externalIAM.parameters.jwks }}
 {{- else -}}
-https://{{ $root.Values.namespaces.rhbk }}.{{ $root.Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth
+{{- include "rhcl.keycloak.oidcBaseUrl" . -}}/protocol/openid-connect/certs
 {{- end -}}
 {{- end -}}
 
-{{- define "rhcl.externalIam.tokenEndpoint" -}}
-{{- $root := .root -}}
-{{- $app := .app -}}
-{{- $appCfg := default dict (index $root.Values.rhbk $app) -}}
-{{- $iam := default dict $appCfg.externalIam -}}
-{{- $params := default dict $iam.parameters -}}
-{{- if and $iam.enabled $params.tokenEndpoint -}}
-{{- $params.tokenEndpoint -}}
+{{/*
+Authorization endpoint — externalIAM.parameters.authorize when enabled, else Keycloak /auth.
+*/}}
+{{- define "rhcl.oidc.authorizeUrl" -}}
+{{- if .Values.externalIAM.enabled -}}
+{{ .Values.externalIAM.parameters.authorize }}
 {{- else -}}
-https://{{ $root.Values.namespaces.rhbk }}.{{ $root.Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
+{{- include "rhcl.keycloak.oidcBaseUrl" . -}}/protocol/openid-connect/auth
 {{- end -}}
 {{- end -}}
 
-{{- define "rhcl.externalIam.jwksURL" -}}
-{{- $app := .app -}}
-{{- $root := .root -}}
-{{- $appCfg := default dict (index $root.Values.rhbk $app) -}}
-{{- $iam := default dict $appCfg.externalIam -}}
-{{- $params := default dict $iam.parameters -}}
-{{- if and $iam.enabled $params.jwksURL (not $params.issuerURL) -}}
-{{- $params.jwksURL -}}
+{{/*
+Token endpoint — externalIAM.parameters.accessToken when enabled, else Keycloak /token.
+*/}}
+{{- define "rhcl.oidc.accessTokenUrl" -}}
+{{- if .Values.externalIAM.enabled -}}
+{{ .Values.externalIAM.parameters.accessToken }}
+{{- else -}}
+{{- include "rhcl.keycloak.oidcBaseUrl" . -}}/protocol/openid-connect/token
 {{- end -}}
 {{- end -}}
 
-{{- define "rhcl.externalIam.authRedirectURL" -}}
-{{- $root := .root -}}
-{{- $app := .app -}}
-{{- $clientId := index $root.Values.rhbk $app "clientId" -}}
-{{- $host := .host | default (printf "hello-world-app.%s" $root.Values.gwapiDomain) -}}
-{{- include "rhcl.externalIam.authorizationEndpoint" (dict "root" $root "app" $app) -}}?client_id={{ $clientId }}&redirect_uri=http%3A%2F%2F{{ $host }}%2Fauth%2Fcallback&response_type=code&scope=openid
+{{/*
+Full browser redirect to start login (authorization code flow).
+*/}}
+{{- define "rhcl.oidc.loginRedirectUrl" -}}
+{{- $authorize := include "rhcl.oidc.authorizeUrl" . -}}
+{{- printf "%s?client_id=%s&redirect_uri=http%%3A%%2F%%2Fhello-world-app.%s%%2Fauth%%2Fcallback&response_type=code&scope=openid" $authorize .Values.rhbk.helloWorldApp.clientId .Values.gwapiDomain -}}
 {{- end -}}

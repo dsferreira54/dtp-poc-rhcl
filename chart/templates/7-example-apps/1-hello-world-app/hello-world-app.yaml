@@ -1,4 +1,3 @@
-{{- $iamApp := dict "root" . "app" "helloWorldApp" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -110,18 +109,17 @@ spec:
             cookie:
               name: jwt
           jwt:
-{{- if include "rhcl.externalIam.jwksURL" $iamApp }}
-            jwksUrl: {{ include "rhcl.externalIam.jwksURL" $iamApp | quote }}
-{{- else }}
-            issuerUrl: {{ include "rhcl.externalIam.issuerURL" $iamApp | quote }}
-{{- end }}
+            issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}
+            {{- if .Values.externalIAM.enabled }}
+            jwksUrl: {{ include "rhcl.oidc.jwksUrl" . | quote }}
+            {{- end }}
           priority: 0
       response:
         unauthenticated:
           code: 302
           headers:
             location:
-              value: {{ include "rhcl.externalIam.authRedirectURL" $iamApp | quote }}
+              value: {{ include "rhcl.oidc.loginRedirectUrl" . | quote }}
             set-cookie:
               expression: |
                 "target=" + request.path + "; domain=hello-world-app.{{ .Values.gwapiDomain }}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600"
@@ -148,7 +146,7 @@ spec:
           when:
           - predicate: request.query.split("&").map(entry, entry.split("=")).filter(pair, pair[0] == "code").map(pair, pair[1]).size() > 0
           http:
-            url: {{ include "rhcl.externalIam.tokenEndpoint" $iamApp | quote }}
+            url: {{ include "rhcl.oidc.accessTokenUrl" . | quote }}
             method: POST
             contentType: application/x-www-form-urlencoded
             sharedSecretRef:
@@ -169,7 +167,7 @@ spec:
               cookies := { name: value | raw_cookies := input.request.headers.cookie; cookie_parts := split(raw_cookies, ";"); part := cookie_parts[_]; kv := split(trim(part, " "), "="); count(kv) == 2; name := trim(kv[0], " "); value := trim(kv[1], " ")}
               location := concat("", ["http://hello-world-app.{{ .Values.gwapiDomain }}", cookies.target]) { input.auth.metadata.token.id_token; cookies.target }
               location := "http://hello-world-app.{{ .Values.gwapiDomain }}" { input.auth.metadata.token.id_token; not cookies.target }
-              location := "{{ include "rhcl.externalIam.authRedirectURL" $iamApp }}" { not input.auth.metadata.token.id_token }
+              location := {{ include "rhcl.oidc.loginRedirectUrl" . | quote }} { not input.auth.metadata.token.id_token }
               allow = true
         deny:
           priority: 2

@@ -5,18 +5,18 @@ namespaces:
   exampleApps: example-apps
   externalAppConsumers: external-app-consumers
   rhbk: rhbk
+# IAM externo (OIDC). Com enabled: false usa o Keycloak interno (realm rhcl).
+externalIAM:
+  enabled: false
+  parameters:
+    issuer: https://hiam.gerid.acme.com/cas/oidc
+    jwks: https://hiam.gerid.acme.com/cas/oidc/jwks
+    authorize: https://hiam.gerid.acme.com/cas/oidc/authorize
+    accessToken: https://hiam.gerid.acme.com/cas/oidc/accessToken
 rhbk:
   helloWorldApp:
     clientId: hello-world-app
     clientSecret: hello-world-app-secret
-    # IAM externo (ex.: GERID) — enabled: false = Keycloak embarcado; true = usa parameters abaixo
-    externalIam:
-      enabled: false
-      parameters:
-        jwksURL: "https://hiam.gerid.acme.com/cas/oidc/jwks"
-        issuerURL: "https://hiam.gerid.acme.com/cas/oidc"
-        authorizationEndpoint: "https://hiam.gerid.acme.com/cas/oidc/authorize"
-        tokenEndpoint: "https://hiam.gerid.acme.com/cas/oidc/accessToken"
 monitoring:
   userWorkload:
     enabled: true
