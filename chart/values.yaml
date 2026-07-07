@@ -5,6 +5,10 @@ namespaces:
   exampleApps: example-apps
   externalAppConsumers: external-app-consumers
   rhbk: rhbk
+rhbk:
+  helloWorldApp:
+    clientId: hello-world-app
+    clientSecret: hello-world-app-secret
 monitoring:
   userWorkload:
     enabled: true
