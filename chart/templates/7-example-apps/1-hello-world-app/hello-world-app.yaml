@@ -110,9 +110,10 @@ spec:
             cookie:
               name: jwt
           jwt:
-            issuerUrl: {{ include "rhcl.externalIam.issuerURL" $iamApp | quote }}
 {{- if include "rhcl.externalIam.jwksURL" $iamApp }}
             jwksUrl: {{ include "rhcl.externalIam.jwksURL" $iamApp | quote }}
+{{- else }}
+            issuerUrl: {{ include "rhcl.externalIam.issuerURL" $iamApp | quote }}
 {{- end }}
           priority: 0
       response:

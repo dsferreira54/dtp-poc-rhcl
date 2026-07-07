@@ -1,8 +1,10 @@
 {{/*
-URLs OIDC para IAM externo (HIAM, etc.) — .Values.rhbk.<app>.externalIam
+URLs OIDC para IAM externo — .Values.rhbk.<app>.externalIam
 
-externalIam.enabled: false → Keycloak embarcado (realm rhcl).
-externalIam.enabled: true  → usa externalIam.parameters; campo omitido cai no Keycloak.
+enabled: false → endpoints do Keycloak embarcado (realm rhcl); parameters ignorados.
+enabled: true  → authorizationEndpoint, tokenEndpoint e issuerURL vão para os AuthPolicies.
+  No bloco jwt o CRD aceita só issuerUrl OU jwksUrl: usa issuerURL dos parameters;
+  jwksURL só entra se issuerURL estiver vazio (IAM sem URL de issuer).
 
 Usage: include "rhcl.externalIam.issuerURL" (dict "root" . "app" "helloWorldApp")
 */}}
@@ -51,7 +53,7 @@ https://{{ $root.Values.namespaces.rhbk }}.{{ $root.Values.ingressDomain }}/real
 {{- $appCfg := default dict (index $root.Values.rhbk $app) -}}
 {{- $iam := default dict $appCfg.externalIam -}}
 {{- $params := default dict $iam.parameters -}}
-{{- if and $iam.enabled $params.jwksURL -}}
+{{- if and $iam.enabled $params.jwksURL (not $params.issuerURL) -}}
 {{- $params.jwksURL -}}
 {{- end -}}
 {{- end -}}
