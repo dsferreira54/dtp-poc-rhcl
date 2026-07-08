@@ -51,6 +51,13 @@ Token endpoint — externalIAM.parameters.accessToken when enabled, else Keycloa
 {{- end -}}
 
 {{/*
+In-cluster Keycloak token endpoint for Kuadrant metadata HTTP calls.
+*/}}
+{{- define "rhcl.oidc.internalAccessTokenUrl" -}}
+http://keycloak-service.{{ .Values.namespaces.rhbk }}.svc.cluster.local:8080/realms/rhcl/protocol/openid-connect/token
+{{- end -}}
+
+{{/*
 Full browser redirect to start login (authorization code flow).
 */}}
 {{- define "rhcl.oidc.loginRedirectUrl" -}}

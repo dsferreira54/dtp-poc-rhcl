@@ -1,0 +1,19 @@
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: red-app
+  namespace: {{ .Values.namespaces.exampleApps }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: red-app
+  rules:
+    authentication:
+      red-app-client-credentials:
+        jwt:
+          issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}

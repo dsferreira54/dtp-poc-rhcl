@@ -17,6 +17,9 @@ rhbk:
   helloWorldApp:
     clientId: hello-world-app
     clientSecret: hello-world-app-secret
+  redApp:
+    clientId: red-app
+    clientSecret: red-app-secret
 monitoring:
   userWorkload:
     enabled: true
