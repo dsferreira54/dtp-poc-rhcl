@@ -41,7 +41,7 @@ metadata:
   name: private-gateway
   namespace: istio-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "12"
+    argocd.argoproj.io/sync-wave: "13"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   gatewayClassName: istio
