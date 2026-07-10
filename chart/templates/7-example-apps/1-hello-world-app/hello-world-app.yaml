@@ -52,11 +52,11 @@ metadata:
     argocd.argoproj.io/sync-wave: "28"
 spec:
   parentRefs:
-  - name: main-gateway
+  - name: private-gateway
     namespace: istio-ingress
     sectionName: hello-world-app
   hostnames:
-  - hello-world-app.{{ .Values.gwapiDomain }}
+  - hello-world-app.{{ .Values.privategwDomain }}
   rules:
   - matches:
     - path:
@@ -66,29 +66,8 @@ spec:
     - name: hello-world-app
       port: 8080
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: hello-world-app-callback
-  namespace: {{ .Values.namespaces.exampleApps }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "29"
-spec:
-  parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: main-gateway
-    namespace: istio-ingress
-  hostnames:
-  - hello-world-app.{{ .Values.gwapiDomain }}
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /auth/callback
----
-apiVersion: kuadrant.io/v1
-kind: AuthPolicy
+apiVersion: extensions.kuadrant.io/v1alpha1
+kind: OIDCPolicy
 metadata:
   name: hello-world-app
   namespace: {{ .Values.namespaces.exampleApps }}
@@ -100,89 +79,16 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: hello-world-app
-  overrides:
-    strategy: merge
-    rules:
-      authentication:
-        oidc:
-          credentials:
-            cookie:
-              name: jwt
-          jwt:
-            {{- if .Values.externalIAM.enabled }}
-            jwksUrl: {{ include "rhcl.oidc.jwksUrl" . | quote }}
-            {{- else }}
-            issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}
-            {{- end }}
-          priority: 0
-      response:
-        unauthenticated:
-          code: 302
-          headers:
-            location:
-              value: {{ include "rhcl.oidc.loginRedirectUrl" . | quote }}
-            set-cookie:
-              expression: |
-                "target=" + request.path + "; domain=hello-world-app.{{ .Values.gwapiDomain }}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600"
----
-apiVersion: kuadrant.io/v1
-kind: AuthPolicy
-metadata:
-  name: hello-world-app-callback
-  namespace: {{ .Values.namespaces.exampleApps }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "30"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: hello-world-app-callback
-  overrides:
-    strategy: merge
-    rules:
-      metadata:
-        token:
-          priority: 0
-          when:
-          - predicate: request.query.split("&").map(entry, entry.split("=")).filter(pair, pair[0] == "code").map(pair, pair[1]).size() > 0
-          http:
-            url: {{ include "rhcl.oidc.accessTokenUrl" . | quote }}
-            method: POST
-            contentType: application/x-www-form-urlencoded
-            sharedSecretRef:
-              name: hello-world-app-oidc-client
-              key: basicAuth
-            credentials:
-              authorizationHeader:
-                prefix: "Basic "
-            body:
-              expression: |
-                "code=" + request.query.split("&").map(entry, entry.split("=")).filter(pair, pair[0] == "code").map(pair, pair[1])[0] + "&grant_type=authorization_code&redirect_uri=http%3A%2F%2Fhello-world-app.{{ .Values.gwapiDomain }}%2Fauth%2Fcallback&client_id={{ .Values.rhbk.helloWorldApp.clientId }}"
-      authorization:
-        location:
-          priority: 1
-          opa:
-            allValues: true
-            rego: |
-              cookies := { name: value | raw_cookies := input.request.headers.cookie; cookie_parts := split(raw_cookies, ";"); part := cookie_parts[_]; kv := split(trim(part, " "), "="); count(kv) == 2; name := trim(kv[0], " "); value := trim(kv[1], " ")}
-              location := concat("", ["http://hello-world-app.{{ .Values.gwapiDomain }}", cookies.target]) { input.auth.metadata.token.id_token; cookies.target }
-              location := "http://hello-world-app.{{ .Values.gwapiDomain }}" { input.auth.metadata.token.id_token; not cookies.target }
-              location := {{ include "rhcl.oidc.loginRedirectUrl" . | quote }} { not input.auth.metadata.token.id_token }
-              allow = true
-        deny:
-          priority: 2
-          opa:
-            rego: allow = false
-      response:
-        unauthorized:
-          code: 302
-          headers:
-            location:
-              expression: auth.authorization.location.location
-            set-cookie:
-              expression: |
-                "jwt=" + auth.metadata.token.id_token + "; domain=hello-world-app.{{ .Values.gwapiDomain }}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600"
+  provider:
+    issuerURL: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl
+    clientID: hello-world-app
+    authorizationEndpoint: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/auth
+    tokenEndpoint: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
+    redirectURI: http://hello-world-app.{{ .Values.gwapiDomain }}/auth/callback
+  auth:
+    tokenSource:
+      cookie:
+        name: jwt
 ---
 apiVersion: kuadrant.io/v1
 kind: RateLimitPolicy

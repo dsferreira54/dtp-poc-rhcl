@@ -20,13 +20,6 @@ metadata:
 spec:
   gatewayClassName: istio
   listeners:
-  - name: hello-world-app
-    hostname: "hello-world-app.{{ .Values.gwapiDomain }}"
-    port: 80
-    protocol: HTTP
-    allowedRoutes:
-      namespaces:
-        from: All
   - name: http
     hostname: "*.{{ .Values.gwapiDomain }}"
     port: 80
@@ -48,6 +41,13 @@ spec:
   listeners:
   - name: http
     hostname: "*.{{ .Values.privategwDomain }}"
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: hello-world-app
+    hostname: "hello-world-app.{{ .Values.privategwDomain }}"
     port: 80
     protocol: HTTP
     allowedRoutes:

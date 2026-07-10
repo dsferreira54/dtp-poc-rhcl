@@ -31,40 +31,30 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   keycloakCRName: keycloak
-  placeholders:
-    HELLO_WORLD_APP_CLIENT_SECRET:
-      secret:
-        name: hello-world-app-keycloak-client
-        key: clientSecret
-    RED_APP_CLIENT_SECRET:
-      secret:
-        name: red-app-keycloak-client
-        key: clientSecret
   realm:
     realm: rhcl
     enabled: true
     displayName: "RHCL PoC"
     sslRequired: none
     clients:
-      - clientId: {{ .Values.rhbk.helloWorldApp.clientId | quote }}
+      - clientId: hello-world-app
         name: "Hello World App"
         enabled: true
         protocol: openid-connect
-        publicClient: false
-        secret: $(HELLO_WORLD_APP_CLIENT_SECRET)
+        publicClient: true
         standardFlowEnabled: true
         directAccessGrantsEnabled: false
         fullScopeAllowed: true
         redirectUris:
-          - http://hello-world-app.{{ .Values.gwapiDomain }}/auth/callback
+          - "*"
         webOrigins:
-          - http://hello-world-app.{{ .Values.gwapiDomain }}
+          - "*"
       - clientId: {{ .Values.rhbk.redApp.clientId | quote }}
         name: "Red App"
         enabled: true
         protocol: openid-connect
         publicClient: false
-        secret: $(RED_APP_CLIENT_SECRET)
+        secret: {{ .Values.rhbk.redApp.clientSecret | quote }}
         standardFlowEnabled: false
         directAccessGrantsEnabled: false
         serviceAccountsEnabled: true

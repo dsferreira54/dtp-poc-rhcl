@@ -19,7 +19,7 @@ data:
     TOKEN_URL = os.environ["TOKEN_URL"]
     CLIENT_ID = os.environ["CLIENT_ID"]
     CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-    GATEWAY_URL = "http://main-gateway-istio.istio-ingress.svc.cluster.local/time"
+    GATEWAY_URL = "http://private-gateway-istio.istio-ingress.svc.cluster.local/time"
     RED_APP_HOST = os.environ["RED_APP_HOST"]
 
     def get_access_token():
@@ -94,7 +94,7 @@ spec:
               name: red-app-consumer
               key: clientSecret
         - name: RED_APP_HOST
-          value: red-app.{{ .Values.gwapiDomain }}
+          value: red-app.{{ .Values.privategwDomain }}
         volumeMounts:
         - name: app-source
           mountPath: /app
