@@ -82,7 +82,7 @@ spec:
         - /app/client.py
         env:
         - name: TOKEN_URL
-          value: {{ include "rhcl.oidc.internalAccessTokenUrl" . | quote }}
+          value: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl/protocol/openid-connect/token
         - name: CLIENT_ID
           valueFrom:
             secretKeyRef:
