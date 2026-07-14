@@ -20,34 +20,15 @@ metadata:
 spec:
   gatewayClassName: istio
   listeners:
+  - name: hello-world-app
+    hostname: "hello-world-app.{{ .Values.gwapiDomain }}"
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: All
   - name: http
     hostname: "*.{{ .Values.gwapiDomain }}"
-    port: 80
-    protocol: HTTP
-    allowedRoutes:
-      namespaces:
-        from: All
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: private-gateway
-  namespace: istio-ingress
-  annotations:
-    argocd.argoproj.io/sync-wave: "13"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-spec:
-  gatewayClassName: istio
-  listeners:
-  - name: http
-    hostname: "*.{{ .Values.privategwDomain }}"
-    port: 80
-    protocol: HTTP
-    allowedRoutes:
-      namespaces:
-        from: All
-  - name: hello-world-app
-    hostname: "hello-world-app.{{ .Values.privategwDomain }}"
     port: 80
     protocol: HTTP
     allowedRoutes:

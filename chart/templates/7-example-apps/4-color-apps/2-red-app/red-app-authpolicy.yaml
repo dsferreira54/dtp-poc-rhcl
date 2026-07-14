@@ -16,4 +16,4 @@ spec:
     authentication:
       red-app-client-credentials:
         jwt:
-          issuerUrl: https://{{ .Values.namespaces.rhbk }}.{{ .Values.ingressDomain }}/realms/rhcl
+          issuerUrl: {{ include "rhcl.oidc.issuerUrl" . | quote }}

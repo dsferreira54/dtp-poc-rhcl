@@ -95,10 +95,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "33"
 spec:
   parentRefs:
-  - name: private-gateway
+  - name: main-gateway
     namespace: istio-ingress
   hostnames:
-  - red-app.{{ .Values.privategwDomain }}
+  - red-app.{{ .Values.gwapiDomain }}
   rules:
   - matches:
     - path:

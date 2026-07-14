@@ -1,12 +1,22 @@
 gwapiDomain: gwapi.ocp.acme.com
-privategwDomain: privategw.ocp.acme.com
 ingressDomain: apps.ocp.acme.com
 rhclVersion: 1.4.1
 namespaces:
   exampleApps: example-apps
   externalAppConsumers: external-app-consumers
   rhbk: rhbk
+# IAM externo (OIDC). Com enabled: false usa o Keycloak interno (realm rhcl).
+externalIAM:
+  enabled: false
+  parameters:
+    issuer: https://hiam.gerid.acme.com/cas/oidc
+    jwks: https://hiam.gerid.acme.com/cas/oidc/jwks
+    authorize: https://hiam.gerid.acme.com/cas/oidc/authorize
+    accessToken: https://hiam.gerid.acme.com/cas/oidc/accessToken
 rhbk:
+  helloWorldApp:
+    clientId: hello-world-app
+    clientSecret: hello-world-app-secret
   redApp:
     clientId: red-app
     clientSecret: red-app-secret
